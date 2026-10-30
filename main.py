@@ -9,10 +9,6 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-
-# Chave = user_id (int) -> vale para você ou para o @usuário mencionado
-# Chave = role_id (int) -> vale para qualquer membro que tenha o @cargo mencionado
-# Chave = "amigo"       -> vale para qualquer outra pessoa (exceto quem ativou)
 rigged_rolls = {}
 
 ROLL_REGEX = re.compile(
@@ -25,7 +21,7 @@ ROLL_REGEX = re.compile(
 )
 async def comando_rollem(interaction: discord.Interaction):
   await interaction.response.send_message(
-      "🎲 **Rollem está ativo!** Digite a rolagem diretamente no chat (ex:"
+      "**Rollem está ativo!** Digite a rolagem diretamente no chat (ex:"
       " `1d20` ou `3d8`).",
       ephemeral=True,
   )
@@ -132,7 +128,6 @@ async def on_message(message: discord.Message):
         tipo_alvo = "amigo"
         alvo_desc = "próximo amigo (qualquer um menos você)"
         partes = partes[1:]
-      # 4ª Opção: Você mesmo (.set ...)
       else:
         alvo_key = message.author.id
         tipo_alvo = "user"
@@ -187,8 +182,7 @@ async def on_message(message: discord.Message):
   for _ in range(repeticoes):
     config_aplicada = None
     chave_remover = None
-
-    # 1º Caso: Quem rolou tem um .set direcionado ao seu ID de usuário (próprio ou @usuário)
+      
     cfg_user = rigged_rolls.get(message.author.id)
     if (
         cfg_user
@@ -198,7 +192,6 @@ async def on_message(message: discord.Message):
       config_aplicada = cfg_user
       chave_remover = message.author.id
 
-    # 2º Caso: Quem rolou possui um @cargo que foi configurado no .set
     if (
         not config_aplicada
         and hasattr(message.author, "roles")
@@ -215,7 +208,6 @@ async def on_message(message: discord.Message):
           chave_remover = role.id
           break
 
-    # 3º Caso: Existe um ".set amigo" ativo e quem rolou NÃO foi quem armou o .set
     if not config_aplicada:
       cfg_amigo = rigged_rolls.get("amigo")
       if (
